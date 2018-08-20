@@ -10,7 +10,7 @@ import UIKit
 
 @objc protocol NMenuDropViewDataSource {
     func  memu(_ memu: NMenuDropView, numberOfRowsInColumn column: NSInteger, leftOrRight: NSInteger,leftRow: NSInteger) -> NSInteger
-//    func  memu(_ memu: NMenuDropView, titleForColumn column: NSInteger) -> Int
+    func  memu(_ memu: NMenuDropView, titleForColumn column: NSInteger) -> String
 //    func  memu(_ memu: NMenuDropView, numberOfRowsInSection section: Int) -> Int
     func  memu(_ memu: NMenuDropView, titleForRowAt indexPath: NIndexPath) -> String
     /// 表视图，左边表视图显示比例
@@ -23,7 +23,15 @@ import UIKit
     ///
     /// - Parameter column:
     /// - Returns: 是否显示
-    func haveRightTableViewInColumn(column: NSInteger) -> Bool}
+    func haveRightTableViewInColumn(column: NSInteger) -> Bool
+    
+    /// 总共几个标题，默认1
+    ///
+    /// - Parameter memu: 菜单
+    /// - Returns: 菜单数量
+    @objc optional func numberOfColumn(_ memu: NMenuDropView) -> NSInteger
+
+}
 
 @objc protocol NMenuDropViewDelegate {
     @objc optional func memu(_ memu: NMenuDropView, didSelectRowAt indexPath: NIndexPath)
@@ -46,7 +54,9 @@ class NIndexPath: NSObject {
 class NMenuDropView: UIView {
     var currentSelectedIndex: NSInteger = 0
     var menuTitleArr = ["菜式","地区"]
-    var listArr: [[String: Any]] = []
+    var numOfMenu = 1
+    //弹窗高最大行数
+    private var maxLineNum: Int = 8
     //是否有两列（右边那列是否存在）
     var isHasRight = false
     var delegate: NMenuDropViewDelegate? {
@@ -56,7 +66,8 @@ class NMenuDropView: UIView {
     }
     var dataSource: NMenuDropViewDataSource? {
         didSet {
-            setupTableView()
+//            setupTableView()
+            setupDataSource()
         }
     }
     var menuTitleNormalColor = UIColor.black
@@ -79,15 +90,8 @@ class NMenuDropView: UIView {
         tableView.isUserInteractionEnabled = true
         return tableView
     }()
-    private lazy var rightTableView: UITableView = {
-        let tableView = UITableView.init(frame: CGRect.init(x: self.frame.size.width, y: self.frame.origin.y + self.frame.size.height, width: 0, height: 0), style: UITableViewStyle.plain)
-        tableView.delegate = self
-        tableView.dataSource = self
-        tableView.rowHeight = 44
-        tableView.tableHeaderView = UIView()
-        tableView.tableFooterView = UIView()
-        return tableView
-    }()
+//    private var leftTableView = UITableView()
+    private var rightTableView = UITableView()
     private let backgroundView = UIView()
     
     
@@ -100,7 +104,7 @@ class NMenuDropView: UIView {
      */
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupView()
+//        setupView()
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -144,6 +148,21 @@ extension NMenuDropView {
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didBackgroundViewTap))
         backgroundView.addGestureRecognizer(tapGesture)
+        
+        let leftTableView = UITableView.init(frame: CGRect.init(x: 0, y: self.frame.origin.y, width: 0, height: 0), style: UITableViewStyle.plain)
+        leftTableView.delegate = self
+        leftTableView.dataSource = self
+        leftTableView.rowHeight = 44
+        leftTableView.tableHeaderView = UIView()
+        leftTableView.tableFooterView = UIView()
+        leftTableView.isUserInteractionEnabled = true
+        
+        let rightTableView = UITableView.init(frame: CGRect.init(x: self.frame.size.width, y: self.frame.origin.y + self.frame.size.height, width: 0, height: 0), style: UITableViewStyle.plain)
+        rightTableView.delegate = self
+        rightTableView.dataSource = self
+        rightTableView.rowHeight = 44
+        rightTableView.tableHeaderView = UIView()
+        rightTableView.tableFooterView = UIView()
     }
   
     fileprivate func setupTableView() {
@@ -152,6 +171,15 @@ extension NMenuDropView {
         leftTableView.frame = CGRect.init(x: 0, y: 0, width: self.frame.width, height: 0)
         backgroundView.addSubview(leftTableView)
         backgroundView.addSubview(rightTableView)
+    }
+    
+    func setupDataSource() {
+        if let num = self.dataSource?.numberOfColumn?(self) {
+            numOfMenu = num
+        }else {
+            numOfMenu = 1
+        }
+        setupView()
     }
 }
 
@@ -169,18 +197,20 @@ extension NMenuDropView {
         let isHaveRight = dataSource?.haveRightTableViewInColumn(column: currentSelectedIndex) ?? false
         let tempRightTableView = isHaveRight ? rightTableView : nil
         if  isShow {
-            animateIndicator(indicators[currentSelectedIndex], titleLabels[currentSelectedIndex], backgroundView, leftTableView, tempRightTableView, andForward: false) {
+            animateIndicator(indicators[currentSelectedIndex], titleLabels[currentSelectedIndex], backgroundView, leftTableView, rightTableView, andForward: false) {
                 isShow = false
             }
         }else {
+            if isHaveRight {
+                tempRightTableView?.reloadData()
+            }
             leftTableView.reloadData()
-            tempRightTableView?.reloadData()
             let radio = self.dataSource?.widthRatioOfLeftColumn(column: currentSelectedIndex) ?? 1
             leftTableView.frame = CGRect.init(x: self.frame.origin.x, y: self.frame.origin.y + self.frame.size.height, width: self.frame.size.width * radio, height: 0)
-            if tempRightTableView != nil {
-                tempRightTableView?.frame = CGRect.init(x: self.frame.origin.x + leftTableView.frame.size.width, y: self.frame.origin.y + self.frame.size.height, width: self.frame.size.width * (1 - radio), height: 0)
+            if rightTableView != nil {
+                rightTableView.frame = CGRect.init(x: self.frame.origin.x + leftTableView.frame.size.width, y: self.frame.origin.y + self.frame.size.height, width: self.frame.size.width * (1 - radio), height: 0)
             }
-            animateIndicator(indicators[currentSelectedIndex], titleLabels[currentSelectedIndex], backgroundView, leftTableView, tempRightTableView, andForward: true) {
+            animateIndicator(indicators[currentSelectedIndex], titleLabels[currentSelectedIndex], backgroundView, leftTableView, rightTableView, andForward: true) {
                 isShow = true
             }
         }
@@ -240,12 +270,12 @@ extension NMenuDropView {
             
             leftTableView.frame = CGRect.init(x: self.frame.origin.x, y: self.frame.origin.y + self.frame.size.height, width: self.frame.size.width * radio, height: 0)
             self.superview?.addSubview(leftTableView)
-            leftTableViewHeight = leftTableView.numberOfRows(inSection: 0) > 5 ? (5 * leftTableView.rowHeight) : leftTableView.rowHeight * CGFloat(leftTableView.numberOfRows(inSection: 0))
+            leftTableViewHeight = leftTableView.numberOfRows(inSection: 0) > maxLineNum ? (CGFloat(maxLineNum) * leftTableView.rowHeight) : leftTableView.rowHeight * CGFloat(leftTableView.numberOfRows(inSection: 0))
             
-            if let tempRightTableView = rightTableView {
-                tempRightTableView.frame = CGRect.init(x: self.frame.origin.x + leftTableView.frame.size.width, y: self.frame.origin.y + self.frame.size.height, width: self.frame.size.width * (1 - radio), height: 0)
-                self.superview?.addSubview(tempRightTableView)
-                rightTableViewHeight = tempRightTableView.numberOfRows(inSection: 0) > 5 ? (5 * tempRightTableView.rowHeight) : tempRightTableView.rowHeight * CGFloat(tempRightTableView.numberOfRows(inSection: 0))
+            if  rightTableView != nil {
+                rightTableView!.frame = CGRect.init(x: self.frame.origin.x + leftTableView.frame.size.width, y: self.frame.origin.y + self.frame.size.height, width: self.frame.size.width * (1 - radio), height: 0)
+                self.superview?.addSubview(rightTableView!)
+                rightTableViewHeight = rightTableView!.numberOfRows(inSection: 0) > maxLineNum ? (CGFloat(maxLineNum) * rightTableView!.rowHeight) : rightTableView!.rowHeight * CGFloat(rightTableView!.numberOfRows(inSection: 0))
             }
             
             let tableViewHeight: CGFloat = max(leftTableViewHeight, rightTableViewHeight)
@@ -277,38 +307,43 @@ extension NMenuDropView {
 extension NMenuDropView: UITableViewDelegate,UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         var leftOrRight: NSInteger = 0
-//        if rightTableView == tableView {
-//            leftOrRight = 1
-//        }
+        if tableView == rightTableView {
+            leftOrRight = 1
+        }
         return self.dataSource?.memu(self, numberOfRowsInColumn: currentSelectedIndex, leftOrRight: leftOrRight, leftRow: leftSelectedRow) ?? 0
-//        return self.dataSource?.memu(self, numberOfRowsInSection: section) ?? 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = UITableViewCell.init(style: .default, reuseIdentifier: "cell")
         var leftOrRight: NSInteger = 0
-        if rightTableView == tableView {
+        if tableView == rightTableView {
             leftOrRight = 1
         }
         cell.textLabel?.text = self.dataSource?.memu(self, titleForRowAt: NIndexPath.init(column: currentSelectedIndex, leftOrRight: leftOrRight, leftRow:leftSelectedRow, row: indexPath.row))
         cell.textLabel?.textColor = menuTitleNormalColor
+        
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        guard let _ = self.delegate?.memu?(self, didSelectRowAt: NIndexPath.init(column: currentSelectedIndex, leftOrRight: -1, leftRow: -1, row: indexPath.row))else {
-            return
-        }
+       
         var leftOrRight: NSInteger = 0
-        if rightTableView == tableView {
+        if tableView == rightTableView  {
             leftOrRight = 1
         }else {
             leftOrRight = 0
             leftSelectedRow = indexPath.row
         }
-        confiMenuWithSelectRow(indexPath.row, leftOrRight)
+        guard let _ = self.delegate?.memu?(self, didSelectRowAt: NIndexPath.init(column: currentSelectedIndex, leftOrRight: leftOrRight, leftRow: leftSelectedRow, row: indexPath.row)) else {
+            return
+        }
+        let isHaveRight = self.dataSource?.haveRightTableViewInColumn(column: currentSelectedIndex) ?? false
+        if isHaveRight == true && leftOrRight == 0 {
+        }else {
+            confiMenuWithSelectRow(indexPath.row, leftOrRight)
+        }
     }
     
     static func indexPath(_ col: NSInteger, _ leftOrRight: NSInteger,_ leftRow: NSInteger, _ row: NSInteger) -> NIndexPath {
