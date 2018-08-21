@@ -51,7 +51,7 @@ extension TableViewController1 {
         } else {
             automaticallyAdjustsScrollViewInsets = false
         }
-        tableViewConstraintTop.constant = getTopBarHeight().opposite
+        tableViewConstraintTop.constant = 64
         tableView.delegate = self
         tableView.dataSource = self
         tableView.showsVerticalScrollIndicator = false
@@ -65,7 +65,7 @@ extension TableViewController1 {
         foods = ["菜式","菜式1","菜式2","菜式3","菜式4","菜式5","菜式6","菜式7","菜式8","菜式9","菜式10"]
         areas = [["title":"地区","data":["地区","地区1","地区2","地区3","地区4","地区5"]],["title":"地标","data":["地标"]]]
         menuHeaderSectionView.frame.origin = CGPoint.init(x: 0, y: headerView.frame.maxY)
-        menuHeaderSectionView.menuTitleSelectedColor = AppTheme.THEME_COLOR
+        menuHeaderSectionView.menuTitleSelectedColor = UIColor.red
         menuHeaderSectionView.delegate = self
         menuHeaderSectionView.dataSource = self
         menuHeaderSectionView.didMenuTapClosure = { [weak self] in
@@ -73,7 +73,7 @@ extension TableViewController1 {
                 return
             }
             strongSelf.tableView.scrollToRow(at: [0,0], at: .top, animated: true)
-            strongSelf.menuHeaderSectionView.frame.origin = CGPoint(x:0,y:strongSelf.getTopBarHeight())
+            strongSelf.menuHeaderSectionView.frame.origin = CGPoint(x:0,y:64)
         }
         view.addSubview(menuHeaderSectionView)
     }
@@ -101,9 +101,7 @@ extension TableViewController1: UITableViewDelegate,UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: MemberFoodTableViewCell.className) {_ in
-            return MemberFoodTableViewCell.instanceFromNib() ?? MemberFoodTableViewCell()
-        }
+        let cell = UITableViewCell.init(style: .default, reuseIdentifier: "celll")
         return cell
     }
     
@@ -122,9 +120,9 @@ extension TableViewController1: UIScrollViewDelegate {
     
     func updateMenuSectionView() {
         let y = tableView.contentOffset.y
-        let maxHeight = headerView.frame.maxY - getTopBarHeight()
+        let maxHeight = headerView.frame.maxY - 64
         if y > maxHeight {
-            menuHeaderSectionView.frame.origin = CGPoint(x:0,y:getTopBarHeight())
+            menuHeaderSectionView.frame.origin = CGPoint(x:0,y:64)
         }else {
             menuHeaderSectionView.frame.origin = CGPoint(x:0,y:headerView.frame.maxY - y)
         }
