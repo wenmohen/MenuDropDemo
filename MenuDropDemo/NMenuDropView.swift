@@ -168,12 +168,14 @@ extension NMenuDropView {
         currentMenuSelectedIndex = button.tag - 100
         let isHaveRight = dataSource?.haveRightTableViewInColumn(column: currentMenuSelectedIndex) ?? false
         let tempRightTableView = isHaveRight ? rightTableView : nil
+        leftSelectedRow = dataSource?.currentLeftSelectedRow(column: currentMenuSelectedIndex) ?? 0
+        
         if  isShow {
             animateIndicator(indicators[currentMenuSelectedIndex], titleLabels[currentMenuSelectedIndex], backgroundView, leftTableView, rightTableView, andForward: false) {
                 isShow = false
             }
         }else {
-            leftSelectedRow = dataSource?.currentLeftSelectedRow(column: currentMenuSelectedIndex) ?? 0
+            //            leftSelectedRow = dataSource?.currentLeftSelectedRow(column: currentMenuSelectedIndex) ?? 0
             if isHaveRight {
                 rightTableView.reloadData()
             }
