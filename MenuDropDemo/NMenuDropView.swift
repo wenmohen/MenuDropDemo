@@ -100,7 +100,11 @@ class NMenuDropView: UIView {
     //选中字体颜色
     var menuTitleSelectedColor = UIColor.red
     //每个菜单标题的竖直分割线
-    var verticalLineColor = UIColor.lightGray
+    var separatorLineColor = UIColor.lightGray
+    //竖直分割线占菜单高度的比例
+    var verticalSeparatorLineRatio: CGFloat = 0.6
+    //竖直分割线宽度
+    private var verticalSeparatorLineWidth: CGFloat = 0.5
     //左表视图选中行数，默认选择第一行，起始值为0
     var leftSelectedRow: NSInteger = 0
     //弹窗高最大行数
@@ -113,6 +117,12 @@ class NMenuDropView: UIView {
     private var titleLabels: [UILabel] = []
     //每个菜单标题按钮
     private var menuButtons: [UIButton] = []
+    //每个标题的宽度
+    private var buttonWidth: CGFloat = UIScreen.main.bounds.width
+    //箭头的宽度
+    private let imageWidth: CGFloat = 10
+    //文字和图片间隔
+    private let titleImageSpace: CGFloat = 5
     //弹窗是否显示
     private var isShow = false
     typealias Complete = () -> Void
@@ -161,6 +171,12 @@ extension NMenuDropView {
         rightTableView.rowHeight = 44
         rightTableView.tableHeaderView = UIView()
         rightTableView.tableFooterView = UIView()
+        
+        //菜单底部分割线
+        let bottomLineView = UIView()
+        bottomLineView.frame = CGRect.init(x: 0, y: self.frame.height - 1, width: self.frame.width, height: 1)
+        bottomLineView.backgroundColor = separatorLineColor
+        self.addSubview(bottomLineView)
     }
     
     func setupDataSource() {
@@ -170,30 +186,50 @@ extension NMenuDropView {
             numOfMenu = 1
         }
         
-        let buttonWidth: CGFloat = self.frame.size.width / CGFloat(numOfMenu)
+        
+        buttonWidth = self.frame.size.width / CGFloat(numOfMenu)
         menuButtons = [UIButton]()
         indicators = [UIImageView]()
         titleLabels = [UILabel]()
+        
         for i in 0..<numOfMenu {
+            //菜单标题按钮
             let button = UIButton(type: .custom)
-            button.frame = CGRect.init(x: CGFloat(i) * buttonWidth, y: 0, width: buttonWidth - 1, height: self.frame.height)
-            let titleString = dataSource?.memu(self, titleForColumn: i) ?? ""
-            button.setTitle(titleString, for: .normal)
-            button.setTitleColor(menuTitleNormalColor, for: .normal)
+            button.frame = CGRect.init(x: CGFloat(i) * buttonWidth, y: 0, width: buttonWidth - verticalSeparatorLineWidth, height: self.frame.height)
             button.tag = 100 + i
             self.addSubview(button)
-            menuButtons.append(button)
-            button.setImage(#imageLiteral(resourceName: "icon_arrow"), for: .normal)
             button.addTarget(self, action: #selector(didMenuViewTap), for: .touchUpInside)
             
             if i != 0 {
+                //每个菜单之间的分割线
                 let verticalLineView = UIView()
-                verticalLineView.frame = CGRect(x: CGFloat(i) * buttonWidth - 1, y: 5, width: 1, height: self.frame.height - 10)
-                verticalLineView.backgroundColor = verticalLineColor
+                verticalLineView.frame = CGRect(x: CGFloat(i) * buttonWidth - verticalSeparatorLineWidth, y: self.frame.height * (1 - verticalSeparatorLineRatio) / 2, width: verticalSeparatorLineWidth, height: self.frame.height * verticalSeparatorLineRatio)
+                verticalLineView.backgroundColor = separatorLineColor
                 self.addSubview(verticalLineView)
             }
-            indicators.append(button.imageView ?? UIImageView())
-            titleLabels.append(button.titleLabel ?? UILabel())
+            
+            //标题
+            let titleString = dataSource?.memu(self, titleForColumn: i) ?? ""
+            let titleLabel = UILabel()
+            titleLabel.frame = CGRect.init(x: button.center.x - (imageWidth / 2), y: button.center.y, width: buttonWidth - imageWidth - titleImageSpace , height: button.frame.height)
+            titleLabel.text = titleString
+            titleLabel.center = CGPoint.init(x: button.center.x - (imageWidth / 2), y: button.center.y)
+            titleLabel.textColor = menuTitleNormalColor
+            let size = titleLabel.sizeThatFits(CGSize.init(width: buttonWidth - imageWidth - titleImageSpace, height: self.frame.size.height))
+            titleLabel.bounds.size = CGSize.init(width: size.width, height: self.frame.size.height)
+            self.addSubview(titleLabel)
+            
+            //方向箭头图片
+            let indicatorImageView = UIImageView()
+            indicatorImageView.frame = CGRect.init(x: 0, y: button.center.y, width: imageWidth, height: imageWidth)
+            indicatorImageView.image = #imageLiteral(resourceName: "icon_arrow")
+            indicatorImageView.center = CGPoint(x: titleLabel.frame.maxX + titleImageSpace + imageWidth / 2, y: button.center.y)
+            indicatorImageView.contentMode = .scaleAspectFit
+            self.addSubview(indicatorImageView)
+            
+            menuButtons.append(button)
+            indicators.append(indicatorImageView)
+            titleLabels.append(titleLabel)
         }
         
     }
@@ -237,7 +273,7 @@ extension NMenuDropView {
 extension NMenuDropView {
     fileprivate func animateIndicator(_ indicator: UIImageView,_ title: UILabel,_ backgroundView: UIView, _ leftTableView: UITableView,_ rightTableView: UITableView? = nil,andForward forward: Bool,complete: Complete) {
         animateIndicator(indicator, andForward: forward) {
-            animateTitle(title, andIsShow: forward, complete: {
+            animateTitle(title,indicator, andIsShow: forward, complete: {
                 animateBackgroundView(backgroundView, andIsShow: forward, complete: {
                     animateTableView(leftTableView, rightTableView, andIsShow: forward, complete: {})
                 })
@@ -246,12 +282,12 @@ extension NMenuDropView {
         complete()
     }
     
-    fileprivate func animateTitle(_ title: UILabel, andIsShow isShow: Bool,complete: Complete) {
-        let size = title.sizeThatFits(CGSize.init(width: self.frame.size.width / CGFloat(numOfMenu), height: self.frame.size.height))
-        title.bounds = CGRect.init(x: 0, y: 0, width: size.width, height: self.frame.size.height)
-        title.textColor = isShow == false ? menuTitleSelectedColor : menuTitleNormalColor
-        title.text = "黑胡椒"
-        title.isHidden = false
+    fileprivate func animateTitle(_ title: UILabel,_ indicator: UIImageView, andIsShow isShow: Bool,complete: Complete) {
+        let size = title.sizeThatFits(CGSize.init(width: buttonWidth - imageWidth - titleImageSpace, height: title.frame.size.height))
+        let titleWidth = size.width > buttonWidth - imageWidth - titleImageSpace - 5 ? buttonWidth - imageWidth - titleImageSpace - 8 : size.width
+        title.bounds = CGRect(x: buttonWidth / 2 - (imageWidth / 2), y: 0,width: titleWidth, height: title.frame.size.height)
+        indicator.center = CGPoint.init(x: title.frame.maxX + titleImageSpace + imageWidth / 2, y: title.center.y)
+        title.textColor = isShow ? menuTitleSelectedColor : menuTitleNormalColor
         complete()
     }
     fileprivate func animateIndicator(_ indicator: UIImageView, andForward forward: Bool,complete: Complete) {
@@ -340,13 +376,13 @@ extension NMenuDropView: UITableViewDelegate,UITableViewDataSource {
         let isHaveRight = self.dataSource?.haveRightTableViewInColumn(column: currentMenuSelectedIndex) ?? false
         leftTableView.backgroundColor = isHaveRight ? UIColor.groupTableViewBackground : UIColor.white
         cell.backgroundColor = UIColor.white
-        if indexPath.row == leftSelectedRow && leftOrRight == 0 && isHaveRight == false{
-            cell.textLabel?.textColor = menuTitleSelectedColor
-        }else if tableView == leftTableView && leftOrRight == 0 && isHaveRight == true {
+        if tableView == leftTableView && leftOrRight == 0 && isHaveRight == true {
             cell.textLabel?.textColor =  indexPath.row == leftSelectedRow ? menuTitleNormalColor : menuTitleNormalColor.withAlphaComponent(0.5)
             cell.backgroundColor = indexPath.row == leftSelectedRow ? .white : .clear
         }else if tableView == rightTableView && leftOrRight == 1 {
-            cell.textLabel?.textColor = cell.textLabel?.text == menuButtons[currentMenuSelectedIndex].currentTitle ? menuTitleSelectedColor : menuTitleNormalColor
+            cell.textLabel?.textColor = cell.textLabel?.text == titleLabels[currentMenuSelectedIndex].text ? menuTitleSelectedColor : menuTitleNormalColor
+        }else if tableView == leftTableView && isHaveRight == false {
+            cell.textLabel?.textColor = cell.textLabel?.text == titleLabels[currentMenuSelectedIndex].text ? menuTitleSelectedColor : menuTitleNormalColor
         }else {
             cell.textLabel?.textColor = menuTitleNormalColor
         }
@@ -384,9 +420,9 @@ extension NMenuDropView: UITableViewDelegate,UITableViewDataSource {
 
 extension NMenuDropView {
     fileprivate func confiMenuWithSelectRow(_ row: NSInteger ,_ leftOrRight: NSInteger) {
-        let menuButton = menuButtons[currentMenuSelectedIndex]
+        let menuTitle = titleLabels[currentMenuSelectedIndex]
         let titleString = dataSource?.memu(self, titleForRowAt: NIndexPath.init(column: currentMenuSelectedIndex, leftOrRight: leftOrRight, leftRow: leftSelectedRow, row: row))
-        menuButton.setTitle(titleString, for: .normal)
+        menuTitle.text = titleString
         animateIndicator(indicators[currentMenuSelectedIndex], titleLabels[currentMenuSelectedIndex], backgroundView, leftTableView, rightTableView, andForward: false) {
             isShow = false
         }

@@ -10,10 +10,12 @@ import UIKit
 
 class ViewController: UIViewController  {
     
-    var foods = ["全部菜式","菜式1","菜式2","菜式3","菜式4","菜式5"]
-    var areas = ["全部地区","地区1","地区2","地区3","地区4","地区5","地区6","地区7","地区8","地区9","地区10"]
+    var foods = ["菜式","菜式咖色的接口看奥斯卡大咖斯柯达啊速度快萨克","菜式2","菜式3","菜式4","菜式5"]
+    var areas = ["全部地区","地区1","地区2"]
     var arr1 = [[String: Any]]()
     var arr2 = [String]()
+    var arr3 = [String]()
+
     var menuArr = [String]()
     var selectedDate1Index = 0
     var selectedDate1Index2 = 0
@@ -23,11 +25,11 @@ class ViewController: UIViewController  {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         let menu = NMenuDropView.init(frame: CGRect.init(x: 0, y: 64, width: UIScreen.main.bounds.width, height: 40))
-        menu.backgroundColor = UIColor.red.withAlphaComponent(0.4)
         self.view.addSubview(menu)
         arr1 = [["title":"餐厅","data":foods],["title":"地标","data":areas]]
         arr2 = areas
-        menuArr = ["菜品","地区"]
+        arr3 = ["商圈1","商圈1"]
+        menuArr = ["菜式","地区"]
         menu.delegate = self
         menu.dataSource = self
     }
@@ -109,7 +111,6 @@ extension ViewController: NMenuDropViewDelegate, NMenuDropViewDataSource {
                 guard let datas = arr1[indexPath.leftRow]["data"] as? [String] else {
                     return ""
                 }
-                print(datas)
                 return datas[indexPath.row]
             }
         case 1:
@@ -125,17 +126,14 @@ extension ViewController: NMenuDropViewDelegate, NMenuDropViewDataSource {
         switch indexPath.column {
         case 0:
             if indexPath.leftOrRight == 0 {
-                print(arr1[indexPath.row]["title"])
                 selectedDate1Index = indexPath.row
             }else {
-                guard let datas = arr1[indexPath.leftRow]["data"] as? [String] else {
+                guard let _ = arr1[indexPath.leftRow]["data"] as? [String] else {
                     return
                 }
-                print(datas[indexPath.row])
             }
         case 1:
             selectedDate2Index = indexPath.row
-            print(arr2[indexPath.row])
         default:
             break
         }
