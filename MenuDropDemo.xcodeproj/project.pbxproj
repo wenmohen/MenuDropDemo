@@ -15,6 +15,7 @@
 		3B547535211D747D00D8A2D0 /* MenuDropDemoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B547534211D747D00D8A2D0 /* MenuDropDemoTests.swift */; };
 		3B547540211D747D00D8A2D0 /* MenuDropDemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B54753F211D747D00D8A2D0 /* MenuDropDemoUITests.swift */; };
 		3B54754E211D756A00D8A2D0 /* NMenuDropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B54754D211D756A00D8A2D0 /* NMenuDropView.swift */; };
+		3B97459A212C20BB009F2220 /* TableViewController1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B974599212C20BB009F2220 /* TableViewController1.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +50,7 @@
 		3B54753F211D747D00D8A2D0 /* MenuDropDemoUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuDropDemoUITests.swift; sourceTree = "<group>"; };
 		3B547541211D747D00D8A2D0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3B54754D211D756A00D8A2D0 /* NMenuDropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NMenuDropView.swift; sourceTree = "<group>"; };
+		3B974599212C20BB009F2220 /* TableViewController1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewController1.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +103,7 @@
 			children = (
 				3B54751F211D747C00D8A2D0 /* AppDelegate.swift */,
 				3B547521211D747C00D8A2D0 /* ViewController.swift */,
+				3B974599212C20BB009F2220 /* TableViewController1.swift */,
 				3B54754D211D756A00D8A2D0 /* NMenuDropView.swift */,
 				3B547523211D747C00D8A2D0 /* Main.storyboard */,
 				3B547526211D747D00D8A2D0 /* Assets.xcassets */,
@@ -260,6 +263,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3B547522211D747C00D8A2D0 /* ViewController.swift in Sources */,
+				3B97459A212C20BB009F2220 /* TableViewController1.swift in Sources */,
 				3B54754E211D756A00D8A2D0 /* NMenuDropView.swift in Sources */,
 				3B547520211D747C00D8A2D0 /* AppDelegate.swift in Sources */,
 			);
