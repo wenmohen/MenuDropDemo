@@ -31,12 +31,6 @@ import UIKit
     /// - Returns: 第n行
     func currentLeftSelectedRow(column: NSInteger) -> NSInteger
     
-    /// 选中右边表视图行
-    ///
-    /// - Parameter column: 第n个标题
-    /// - Returns: 第n行
-    func currentRightSelectedRow(column: NSInteger) -> NSInteger
-    
     /// 总共几个标题，默认1
     ///
     /// - Parameter memu: 菜单
@@ -64,7 +58,7 @@ class NIndexPath: NSObject {
 }
 
 class NMenuDropView: UIView {
-    var currentSelectedIndex: NSInteger = 0
+    var currentMenuSelectedIndex: NSInteger = 0
     var menuTitleArr = [""]
     var numOfMenu = 1
     //弹窗高最大行数
@@ -171,32 +165,32 @@ extension NMenuDropView {
 extension NMenuDropView {
     
     @objc private func didMenuViewTap(button: UIButton) {
-        currentSelectedIndex = button.tag - 100
-        let isHaveRight = dataSource?.haveRightTableViewInColumn(column: currentSelectedIndex) ?? false
+        currentMenuSelectedIndex = button.tag - 100
+        let isHaveRight = dataSource?.haveRightTableViewInColumn(column: currentMenuSelectedIndex) ?? false
         let tempRightTableView = isHaveRight ? rightTableView : nil
         if  isShow {
-            animateIndicator(indicators[currentSelectedIndex], titleLabels[currentSelectedIndex], backgroundView, leftTableView, rightTableView, andForward: false) {
+            animateIndicator(indicators[currentMenuSelectedIndex], titleLabels[currentMenuSelectedIndex], backgroundView, leftTableView, rightTableView, andForward: false) {
                 isShow = false
             }
         }else {
-            leftSelectedRow = dataSource?.currentLeftSelectedRow(column: currentSelectedIndex) ?? 0
+            leftSelectedRow = dataSource?.currentLeftSelectedRow(column: currentMenuSelectedIndex) ?? 0
             if isHaveRight {
                 rightTableView.reloadData()
             }
             leftTableView.reloadData()
-            let radio = self.dataSource?.widthRatioOfLeftColumn(column: currentSelectedIndex) ?? 1
+            let radio = self.dataSource?.widthRatioOfLeftColumn(column: currentMenuSelectedIndex) ?? 1
             leftTableView.frame = CGRect.init(x: self.frame.origin.x, y: self.frame.origin.y + self.frame.size.height, width: self.frame.size.width * radio, height: 0)
             if tempRightTableView != nil {
                 rightTableView.frame = CGRect.init(x: self.frame.origin.x + leftTableView.frame.size.width, y: self.frame.origin.y + self.frame.size.height, width: self.frame.size.width * (1 - radio), height: 0)
             }
-            animateIndicator(indicators[currentSelectedIndex], titleLabels[currentSelectedIndex], backgroundView, leftTableView, rightTableView, andForward: true) {
+            animateIndicator(indicators[currentMenuSelectedIndex], titleLabels[currentMenuSelectedIndex], backgroundView, leftTableView, rightTableView, andForward: true) {
                 isShow = true
             }
         }
     }
     
     @objc private func didBackgroundViewTap(tap: UITapGestureRecognizer) {
-        animateIndicator(indicators[currentSelectedIndex], titleLabels[currentSelectedIndex], backgroundView, leftTableView, rightTableView, andForward: false) {
+        animateIndicator(indicators[currentMenuSelectedIndex], titleLabels[currentMenuSelectedIndex], backgroundView, leftTableView, rightTableView, andForward: false) {
             isShow = false
         }
     }
@@ -242,7 +236,7 @@ extension NMenuDropView {
         complete()
     }
     fileprivate func animateTableView(_ leftTableView: UITableView,_ tempRightTableView: UITableView? = nil,andIsShow isShow: Bool, complete: Complete) {
-        let radio = self.dataSource?.widthRatioOfLeftColumn(column: currentSelectedIndex) ?? 1
+        let radio = self.dataSource?.widthRatioOfLeftColumn(column: currentMenuSelectedIndex) ?? 1
         if isShow {//显示
             var leftTableViewHeight: CGFloat = 0
             var rightTableViewHeight: CGFloat = 0
@@ -289,7 +283,7 @@ extension NMenuDropView: UITableViewDelegate,UITableViewDataSource {
         if tableView == rightTableView {
             leftOrRight = 1
         }
-        return self.dataSource?.memu(self, numberOfRowsInColumn: currentSelectedIndex, leftOrRight: leftOrRight, leftRow: leftSelectedRow) ?? 0
+        return self.dataSource?.memu(self, numberOfRowsInColumn: currentMenuSelectedIndex, leftOrRight: leftOrRight, leftRow: leftSelectedRow) ?? 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -299,26 +293,22 @@ extension NMenuDropView: UITableViewDelegate,UITableViewDataSource {
         if tableView == rightTableView {
             leftOrRight = 1
         }
-        cell.textLabel?.text = self.dataSource?.memu(self, titleForRowAt: NIndexPath.init(column: currentSelectedIndex, leftOrRight: leftOrRight, leftRow:leftSelectedRow, row: indexPath.row))
+        cell.textLabel?.text = self.dataSource?.memu(self, titleForRowAt: NIndexPath.init(column: currentMenuSelectedIndex, leftOrRight: leftOrRight, leftRow:leftSelectedRow, row: indexPath.row))
         cell.textLabel?.textColor = menuTitleNormalColor
         
-        let isHaveRight = self.dataSource?.haveRightTableViewInColumn(column: currentSelectedIndex) ?? false
-        let rightSelectedRow = dataSource?.currentRightSelectedRow(column: currentSelectedIndex) ?? 0
-        
+        let isHaveRight = self.dataSource?.haveRightTableViewInColumn(column: currentMenuSelectedIndex) ?? false
         leftTableView.backgroundColor = isHaveRight ? UIColor.groupTableViewBackground : UIColor.white
         cell.backgroundColor = UIColor.white
-        
         if indexPath.row == leftSelectedRow && leftOrRight == 0 && isHaveRight == false{
             cell.textLabel?.textColor = menuTitleSelectedColor
         }else if tableView == leftTableView && leftOrRight == 0 && isHaveRight == true {
             cell.textLabel?.textColor =  indexPath.row == leftSelectedRow ? menuTitleNormalColor : menuTitleNormalColor.withAlphaComponent(0.5)
             cell.backgroundColor = indexPath.row == leftSelectedRow ? .white : .clear
         }else if tableView == rightTableView && leftOrRight == 1 {
-            cell.textLabel?.textColor = indexPath.row == rightSelectedRow ? menuTitleSelectedColor : menuTitleNormalColor
+            cell.textLabel?.textColor = cell.textLabel?.text == menuButtons[currentMenuSelectedIndex].currentTitle ? menuTitleSelectedColor : menuTitleNormalColor
         }else {
             cell.textLabel?.textColor = menuTitleNormalColor
         }
-        
         return cell
     }
     
@@ -331,10 +321,10 @@ extension NMenuDropView: UITableViewDelegate,UITableViewDataSource {
             leftOrRight = 0
             leftSelectedRow = indexPath.row
         }
-        guard let _ = self.delegate?.memu?(self, didSelectRowAt: NIndexPath.init(column: currentSelectedIndex, leftOrRight: leftOrRight, leftRow: leftSelectedRow, row: indexPath.row)) else {
+        guard let _ = self.delegate?.memu?(self, didSelectRowAt: NIndexPath.init(column: currentMenuSelectedIndex, leftOrRight: leftOrRight, leftRow: leftSelectedRow, row: indexPath.row)) else {
             return
         }
-        let isHaveRight = self.dataSource?.haveRightTableViewInColumn(column: currentSelectedIndex) ?? false
+        let isHaveRight = self.dataSource?.haveRightTableViewInColumn(column: currentMenuSelectedIndex) ?? false
         if isHaveRight == true && leftOrRight == 0 {
         }else {
             confiMenuWithSelectRow(indexPath.row, leftOrRight)
@@ -353,10 +343,10 @@ extension NMenuDropView: UITableViewDelegate,UITableViewDataSource {
 
 extension NMenuDropView {
     fileprivate func confiMenuWithSelectRow(_ row: NSInteger ,_ leftOrRight: NSInteger) {
-        let menuButton = menuButtons[currentSelectedIndex]
-        let titleString = dataSource?.memu(self, titleForRowAt: NIndexPath.init(column: currentSelectedIndex, leftOrRight: leftOrRight, leftRow: leftSelectedRow, row: row))
+        let menuButton = menuButtons[currentMenuSelectedIndex]
+        let titleString = dataSource?.memu(self, titleForRowAt: NIndexPath.init(column: currentMenuSelectedIndex, leftOrRight: leftOrRight, leftRow: leftSelectedRow, row: row))
         menuButton.setTitle(titleString, for: .normal)
-        animateIndicator(indicators[currentSelectedIndex], titleLabels[currentSelectedIndex], backgroundView, leftTableView, rightTableView, andForward: false) {
+        animateIndicator(indicators[currentMenuSelectedIndex], titleLabels[currentMenuSelectedIndex], backgroundView, leftTableView, rightTableView, andForward: false) {
             isShow = false
         }
     }

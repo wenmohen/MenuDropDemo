@@ -41,15 +41,7 @@ class ViewController: UIViewController  {
     
 }
 extension ViewController: NMenuDropViewDelegate, NMenuDropViewDataSource {
-    func currentRightSelectedRow(column: NSInteger) -> NSInteger {
-        switch column {
-        case 0:
-            return selectedDate1Index2
-        default:
-            return 0
-        }
-    }
-    
+   
     func currentLeftSelectedRow(column: NSInteger) -> NSInteger {
         switch column {
         case 0:
@@ -141,7 +133,6 @@ extension ViewController: NMenuDropViewDelegate, NMenuDropViewDataSource {
                     return
                 }
                 print(datas[indexPath.row])
-                selectedDate1Index2 = indexPath.row
             }
         case 1:
             selectedDate2Index = indexPath.row
