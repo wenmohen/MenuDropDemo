@@ -28,7 +28,6 @@ class ViewController: UIViewController  {
         arr1 = [["title":"餐厅","data":foods],["title":"地标","data":areas]]
         arr2 = areas
         menuArr = ["菜品","地区"]
-        menu.menuTitleArr = menuArr
         menu.delegate = self
         menu.dataSource = self
     }
@@ -41,7 +40,7 @@ class ViewController: UIViewController  {
     
 }
 extension ViewController: NMenuDropViewDelegate, NMenuDropViewDataSource {
-   
+    
     func currentLeftSelectedRow(column: NSInteger) -> NSInteger {
         switch column {
         case 0:

@@ -9,10 +9,33 @@
 import UIKit
 
 @objc protocol NMenuDropViewDataSource {
+    
+    /// 表视图总行数
+    ///
+    /// - Parameters:
+    ///   - memu: 菜单
+    ///   - column: 菜单中第n个标题
+    ///   - leftOrRight: 0为左表视图，1为右表视图
+    ///   - leftRow: 左表视图选中的行数
+    /// - Returns: 对应的列表总行数
     func  memu(_ memu: NMenuDropView, numberOfRowsInColumn column: NSInteger, leftOrRight: NSInteger,leftRow: NSInteger) -> NSInteger
+    
+    /// 标题
+    ///
+    /// - Parameters:
+    ///   - memu: 菜单
+    ///   - column: 菜单中第n个标题
+    /// - Returns: 标题
     func  memu(_ memu: NMenuDropView, titleForColumn column: NSInteger) -> String
-    //    func  memu(_ memu: NMenuDropView, numberOfRowsInSection section: Int) -> Int
+    
+    /// 表视图列表内容
+    ///
+    /// - Parameters:
+    ///   - memu: 菜单
+    ///   - indexPath: 所在行列
+    /// - Returns: 标题
     func  memu(_ memu: NMenuDropView, titleForRowAt indexPath: NIndexPath) -> String
+    
     /// 表视图，左边表视图显示比例
     ///
     /// - Parameter column: column
@@ -36,10 +59,15 @@ import UIKit
     /// - Parameter memu: 菜单
     /// - Returns: 菜单数量
     @objc optional func numberOfColumn(_ memu: NMenuDropView) -> NSInteger
-    
 }
 
 @objc protocol NMenuDropViewDelegate {
+    
+    /// 列表选中
+    ///
+    /// - Parameters:
+    ///   - memu: 菜单
+    ///   - indexPath: 所在行列
     @objc optional func memu(_ memu: NMenuDropView, didSelectRowAt indexPath: NIndexPath)
 }
 
@@ -58,33 +86,42 @@ class NIndexPath: NSObject {
 }
 
 class NMenuDropView: UIView {
-    var currentMenuSelectedIndex: NSInteger = 0
-    var menuTitleArr = [""]
-    var numOfMenu = 1
-    //弹窗高最大行数
-    private var maxLineNum: Int = 8
-    //是否有两列（右边那列是否存在）
-    var isHasRight = false
+    //代理
     var delegate: NMenuDropViewDelegate?
     var dataSource: NMenuDropViewDataSource? {
         didSet {
             setupDataSource()
         }
     }
+    //选中的菜单，默认选中第一个，起始值为0
+    var currentMenuSelectedIndex: NSInteger = 0
+    //未选中字体颜色
     var menuTitleNormalColor = UIColor.black
+    //选中字体颜色
     var menuTitleSelectedColor = UIColor.red
+    //每个菜单标题的竖直分割线
     var verticalLineColor = UIColor.lightGray
+    //左表视图选中行数，默认选择第一行，起始值为0
     var leftSelectedRow: NSInteger = 0
-    //是否显示
+    //弹窗高最大行数
+    private var maxLineNum: Int = 8
+    //菜单标题个数
+    private var numOfMenu = 1
+    //箭头
     private var indicators: [UIImageView] = []
+    //标题
     private var titleLabels: [UILabel] = []
+    //每个菜单标题按钮
     private var menuButtons: [UIButton] = []
+    //弹窗是否显示
     private var isShow = false
     typealias Complete = () -> Void
+    //左表视图
     private var leftTableView = UITableView()
+    //右表视图
     private var rightTableView = UITableView()
+    //表视图背景View
     private let backgroundView = UIView()
-    
     
     /*
      // Only override draw() if you perform custom drawing.
@@ -210,7 +247,7 @@ extension NMenuDropView {
     }
     
     fileprivate func animateTitle(_ title: UILabel, andIsShow isShow: Bool,complete: Complete) {
-        let size = title.sizeThatFits(CGSize.init(width: self.frame.size.width / CGFloat(menuTitleArr.count), height: self.frame.size.height))
+        let size = title.sizeThatFits(CGSize.init(width: self.frame.size.width / CGFloat(numOfMenu), height: self.frame.size.height))
         title.bounds = CGRect.init(x: 0, y: 0, width: size.width, height: self.frame.size.height)
         title.textColor = isShow == false ? menuTitleSelectedColor : menuTitleNormalColor
         title.text = "黑胡椒"
