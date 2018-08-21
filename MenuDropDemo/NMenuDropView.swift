@@ -54,7 +54,7 @@ import UIKit
     /// - Returns: 第n行
     func currentLeftSelectedRow(column: NSInteger) -> NSInteger
     
-    /// 总共几个标题，默认1
+    /// 菜单标题数量，默认1
     ///
     /// - Parameter memu: 菜单
     /// - Returns: 菜单数量
@@ -139,7 +139,7 @@ class NMenuDropView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 }
-
+//MARK:--Setup
 extension NMenuDropView {
     func setupView() {
         backgroundView.backgroundColor = UIColor.init(white: 0.0, alpha: 0.0)
@@ -198,9 +198,8 @@ extension NMenuDropView {
         
     }
 }
-
+// MARK:--弹窗显示/消失
 extension NMenuDropView {
-    
     @objc private func didMenuViewTap(button: UIButton) {
         currentMenuSelectedIndex = button.tag - 100
         let isHaveRight = dataSource?.haveRightTableViewInColumn(column: currentMenuSelectedIndex) ?? false
@@ -212,7 +211,6 @@ extension NMenuDropView {
                 isShow = false
             }
         }else {
-            //            leftSelectedRow = dataSource?.currentLeftSelectedRow(column: currentMenuSelectedIndex) ?? 0
             if isHaveRight {
                 rightTableView.reloadData()
             }
@@ -234,6 +232,8 @@ extension NMenuDropView {
         }
     }
 }
+
+//MARK:--弹窗动画
 extension NMenuDropView {
     fileprivate func animateIndicator(_ indicator: UIImageView,_ title: UILabel,_ backgroundView: UIView, _ leftTableView: UITableView,_ rightTableView: UITableView? = nil,andForward forward: Bool,complete: Complete) {
         animateIndicator(indicator, andForward: forward) {
@@ -316,6 +316,8 @@ extension NMenuDropView {
         complete()
     }
 }
+
+//MARK:--代理UITableViewDelegate,UITableViewDataSource
 extension NMenuDropView: UITableViewDelegate,UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         var leftOrRight: NSInteger = 0
