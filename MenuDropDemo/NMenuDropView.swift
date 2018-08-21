@@ -241,7 +241,9 @@ extension NMenuDropView {
         let isHaveRight = dataSource?.haveRightTableViewInColumn(column: currentMenuSelectedIndex) ?? false
         let tempRightTableView = isHaveRight ? rightTableView : nil
         leftSelectedRow = dataSource?.currentLeftSelectedRow(column: currentMenuSelectedIndex) ?? 0
-        
+        for (_,title) in titleLabels.enumerated() {
+            title.textColor =  menuTitleNormalColor
+        }
         if  isShow {
             animateIndicator(indicators[currentMenuSelectedIndex], titleLabels[currentMenuSelectedIndex], backgroundView, leftTableView, rightTableView, andForward: false) {
                 isShow = false
@@ -313,20 +315,16 @@ extension NMenuDropView {
     fileprivate func animateTableView(_ leftTableView: UITableView,_ tempRightTableView: UITableView? = nil,andIsShow isShow: Bool, complete: Complete) {
         let radio = self.dataSource?.widthRatioOfLeftColumn(column: currentMenuSelectedIndex) ?? 1
         if isShow {//显示
-            var leftTableViewHeight: CGFloat = 0
-            var rightTableViewHeight: CGFloat = 0
             
             leftTableView.frame = CGRect.init(x: self.frame.origin.x, y: self.frame.origin.y + self.frame.size.height, width: self.frame.size.width * radio, height: 0)
             self.superview?.addSubview(leftTableView)
-            leftTableViewHeight = leftTableView.numberOfRows(inSection: 0) > maxLineNum ? (CGFloat(maxLineNum) * leftTableView.rowHeight) : leftTableView.rowHeight * CGFloat(leftTableView.numberOfRows(inSection: 0))
             
             if  tempRightTableView != nil {
                 tempRightTableView!.frame = CGRect.init(x: self.frame.origin.x + leftTableView.frame.size.width, y: self.frame.origin.y + self.frame.size.height, width: self.frame.size.width * (1 - radio), height: 0)
                 self.superview?.addSubview(tempRightTableView!)
-                rightTableViewHeight = tempRightTableView!.numberOfRows(inSection: 0) > maxLineNum ? (CGFloat(maxLineNum) * tempRightTableView!.rowHeight) : tempRightTableView!.rowHeight * CGFloat(tempRightTableView!.numberOfRows(inSection: 0))
             }
             
-            let tableViewHeight: CGFloat = max(leftTableViewHeight, rightTableViewHeight)
+            let tableViewHeight: CGFloat = calculateToTableViewHeight()
             
             UIView.animate(withDuration: 0.2) {
                 leftTableView.frame = CGRect.init(x: self.frame.origin.x, y: self.frame.origin.y + self.frame.size.height, width: self.frame.size.width * radio, height: tableViewHeight)
@@ -355,7 +353,7 @@ extension NMenuDropView {
 
 //MARK:--代理UITableViewDelegate,UITableViewDataSource
 extension NMenuDropView: UITableViewDelegate,UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    internal func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         var leftOrRight: NSInteger = 0
         if tableView == rightTableView {
             leftOrRight = 1
@@ -363,7 +361,7 @@ extension NMenuDropView: UITableViewDelegate,UITableViewDataSource {
         return self.dataSource?.memu(self, numberOfRowsInColumn: currentMenuSelectedIndex, leftOrRight: leftOrRight, leftRow: leftSelectedRow) ?? 0
     }
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    internal func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = UITableViewCell.init(style: .default, reuseIdentifier: "cell")
         var leftOrRight: NSInteger = 0
@@ -389,7 +387,7 @@ extension NMenuDropView: UITableViewDelegate,UITableViewDataSource {
         return cell
     }
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    internal func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         var leftOrRight: NSInteger = 0
         if tableView == rightTableView  {
@@ -410,6 +408,10 @@ extension NMenuDropView: UITableViewDelegate,UITableViewDataSource {
         if leftOrRight == 0 && isHaveRight {
             leftTableView.reloadData()
             rightTableView.reloadData()
+            let radio = self.dataSource?.widthRatioOfLeftColumn(column: currentMenuSelectedIndex) ?? 1
+            let tableViewHeight: CGFloat = calculateToTableViewHeight()
+            leftTableView.frame = CGRect.init(x: self.frame.origin.x, y: self.frame.origin.y + self.frame.size.height, width: self.frame.size.width * radio, height: tableViewHeight)
+            rightTableView.frame = CGRect.init(x: self.frame.origin.x + leftTableView.frame.size.width, y: self.frame.origin.y + self.frame.size.height, width: self.frame.size.width * (1 - radio), height: tableViewHeight)
         }
     }
     
@@ -425,6 +427,18 @@ extension NMenuDropView {
         menuTitle.text = titleString
         animateIndicator(indicators[currentMenuSelectedIndex], titleLabels[currentMenuSelectedIndex], backgroundView, leftTableView, rightTableView, andForward: false) {
             isShow = false
+        }
+    }
+    //计算弹窗列表的总高
+    func calculateToTableViewHeight() -> CGFloat {
+        let leftTableViewHeight = leftTableView.numberOfRows(inSection: 0) > maxLineNum ? (CGFloat(maxLineNum) * leftTableView.rowHeight) : leftTableView.rowHeight * CGFloat(leftTableView.numberOfRows(inSection: 0))
+        let isHaveRight = self.dataSource?.haveRightTableViewInColumn(column: currentMenuSelectedIndex) ?? false
+        if isHaveRight {
+            let rightTableViewHeight = rightTableView.numberOfRows(inSection: 0) > maxLineNum ? (CGFloat(maxLineNum) * rightTableView.rowHeight) : rightTableView.rowHeight * CGFloat(rightTableView.numberOfRows(inSection: 0))
+            let tableViewHeight: CGFloat = max(leftTableViewHeight, rightTableViewHeight)
+            return tableViewHeight
+        }else {
+            return leftTableViewHeight
         }
     }
 }
