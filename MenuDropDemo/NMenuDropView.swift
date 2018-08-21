@@ -99,6 +99,8 @@ class NMenuDropView: UIView {
     var menuTitleNormalColor = UIColor.black
     //选中字体颜色
     var menuTitleSelectedColor = UIColor.red
+    //背景颜色透明度
+    var backgroundViewColorAlpha: CGFloat = 0.15
     //每个菜单标题的竖直分割线
     var separatorLineColor = UIColor.lightGray
     //竖直分割线占菜单高度的比例
@@ -301,7 +303,7 @@ extension NMenuDropView {
             self.superview?.addSubview(view)
             view.superview?.addSubview(self)
             UIView.animate(withDuration: 0.2) {
-                view.backgroundColor = UIColor.init(white: 0.0, alpha: 0.3)
+                view.backgroundColor = UIColor.init(white: 0.0, alpha: self.backgroundViewColorAlpha)
             }
         }else {//隐藏
             UIView.animate(withDuration: 0.2, animations: {

@@ -11,11 +11,11 @@ import UIKit
 class ViewController: UIViewController  {
     
     var foods = ["菜式","菜式咖色的接口看奥斯卡大咖斯柯达啊速度快萨克","菜式2","菜式3","菜式4","菜式5"]
-    var areas = ["全部地区","地区1","地区2"]
+    var areas = ["地区","地区1","地区2"]
     var arr1 = [[String: Any]]()
     var arr2 = [String]()
     var arr3 = [String]()
-
+    
     var menuArr = [String]()
     var selectedDate1Index = 0
     var selectedDate1Index2 = 0
