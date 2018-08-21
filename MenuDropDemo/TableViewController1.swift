@@ -11,10 +11,9 @@ import UIKit
 class TableViewController1: UIViewController {
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var headerView: UIView!
-    @IBOutlet weak var tableViewConstraintTop: NSLayoutConstraint!
     
     let menuHeaderSectionView = NMenuDropView.init(frame: CGRect.init(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 40))
-    
+    let navigateHeight: CGFloat = UIApplication.shared.statusBarFrame.height + 44
     var foods = [String]()
     var areas = [[String: Any]]()
     var menuTitles = [String]()
@@ -25,6 +24,8 @@ class TableViewController1: UIViewController {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
+        setupTableView()
+        setupMenuView()
     }
 
     override func didReceiveMemoryWarning() {
@@ -46,25 +47,26 @@ class TableViewController1: UIViewController {
 }
 extension TableViewController1 {
     func setupTableView() {
-        if #available(iOS 11.0, *) {
-            tableView.contentInsetAdjustmentBehavior = .never
-        } else {
-            automaticallyAdjustsScrollViewInsets = false
-        }
-        tableViewConstraintTop.constant = 64
+//        if #available(iOS 11.0, *) {
+//            tableView.contentInsetAdjustmentBehavior = .never
+//        } else {
+//            automaticallyAdjustsScrollViewInsets = false
+//        }
         tableView.delegate = self
         tableView.dataSource = self
         tableView.showsVerticalScrollIndicator = false
         tableView.showsHorizontalScrollIndicator = false
         tableView.tableFooterView = UIView()
-        tableView.tableHeaderView?.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 250  + UIApplication.shared.statusBarFrame.height)
+        headerView.frame = CGRect.init(x: 0, y: 0, width: view.frame.width, height: 150)
+        tableView.tableHeaderView = headerView
+
     }
     
     func setupMenuView() {
         menuTitles = ["菜式","地区"]
         foods = ["菜式","菜式1","菜式2","菜式3","菜式4","菜式5","菜式6","菜式7","菜式8","菜式9","菜式10"]
         areas = [["title":"地区","data":["地区","地区1","地区2","地区3","地区4","地区5"]],["title":"地标","data":["地标"]]]
-        menuHeaderSectionView.frame.origin = CGPoint.init(x: 0, y: headerView.frame.maxY)
+        menuHeaderSectionView.frame.origin = CGPoint.init(x: 0, y: headerView.frame.maxY + navigateHeight)
         menuHeaderSectionView.menuTitleSelectedColor = UIColor.red
         menuHeaderSectionView.delegate = self
         menuHeaderSectionView.dataSource = self
@@ -72,15 +74,21 @@ extension TableViewController1 {
             guard let strongSelf = self else {
                 return
             }
-            strongSelf.tableView.scrollToRow(at: [0,0], at: .top, animated: true)
-            strongSelf.menuHeaderSectionView.frame.origin = CGPoint(x:0,y:64)
+            strongSelf.tableView.scrollToRow(at: [0,0], at: .top, animated: false)
+                strongSelf.menuHeaderSectionView.frame.origin = CGPoint(x:0,y: strongSelf.navigateHeight)
         }
         view.addSubview(menuHeaderSectionView)
     }
+    
+    
 }
 
 // MARK: - Delegate, Datasource of tableview
 extension TableViewController1: UITableViewDelegate,UITableViewDataSource {
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 100
+    }
     
     func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
         return 0.01
@@ -102,6 +110,7 @@ extension TableViewController1: UITableViewDelegate,UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell.init(style: .default, reuseIdentifier: "celll")
+        cell.textLabel?.text = "般若波罗蜜多时"
         return cell
     }
     
@@ -114,19 +123,20 @@ extension TableViewController1: UITableViewDelegate,UITableViewDataSource {
 // MARK: - UIScrollViewDelegate
 extension TableViewController1: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        print(tableView.contentOffset.y)
         updateMenuSectionView()
     }
-    
+ 
     func updateMenuSectionView() {
         let y = tableView.contentOffset.y
-        let maxHeight = headerView.frame.maxY - 64
+        let maxHeight = headerView.frame.maxY + navigateHeight
         if y > maxHeight {
-            menuHeaderSectionView.frame.origin = CGPoint(x:0,y:64)
+            menuHeaderSectionView.frame.origin = CGPoint(x:0,y:navigateHeight)
         }else {
-            menuHeaderSectionView.frame.origin = CGPoint(x:0,y:headerView.frame.maxY - y)
+            menuHeaderSectionView.frame.origin = CGPoint(x:0,y: navigateHeight + headerView.frame.maxY - y)
         }
     }
+    
+    
 }
 
 extension TableViewController1: NMenuDropViewDelegate, NMenuDropViewDataSource {

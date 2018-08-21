@@ -24,7 +24,7 @@ class ViewController: UIViewController  {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        let menu = NMenuDropView.init(frame: CGRect.init(x: 0, y: 64, width: UIScreen.main.bounds.width, height: 40))
+        let menu = NMenuDropView.init(frame: CGRect.init(x: 0, y: UIApplication.shared.statusBarFrame.height + 44, width: UIScreen.main.bounds.width, height: 40))
         self.view.addSubview(menu)
         arr1 = [["title":"餐厅","data":foods],["title":"地标","data":areas]]
         arr2 = areas
