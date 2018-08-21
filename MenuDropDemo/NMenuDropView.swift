@@ -99,6 +99,8 @@ class NMenuDropView: UIView {
     var menuTitleNormalColor = UIColor.black
     //选中字体颜色
     var menuTitleSelectedColor = UIColor.red
+    //字体样式
+    var textFont: UIFont = UIFont.systemFont(ofSize: 15)
     //背景颜色透明度
     var backgroundViewColorAlpha: CGFloat = 0.15
     //每个菜单标题的竖直分割线
@@ -134,6 +136,8 @@ class NMenuDropView: UIView {
     private var rightTableView = UITableView()
     //表视图背景View
     private let backgroundView = UIView()
+    //菜单的点击事件
+    var didMenuTapClosure: (()->())?
     
     /*
      // Only override draw() if you perform custom drawing.
@@ -154,20 +158,21 @@ class NMenuDropView: UIView {
 //MARK:--Setup
 extension NMenuDropView {
     func setupView() {
+        self.backgroundColor = UIColor.white
         backgroundView.backgroundColor = UIColor.init(white: 0.0, alpha: 0.0)
         backgroundView.frame = CGRect.init(x: frame.origin.x, y: frame.origin.y + self.frame.height, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didBackgroundViewTap))
         backgroundView.addGestureRecognizer(tapGesture)
         
-        leftTableView = UITableView.init(frame: CGRect.init(x: 0, y: self.frame.origin.y, width: 0, height: 0), style: UITableViewStyle.plain)
+        leftTableView = UITableView.init(frame: CGRect.init(x: 0, y: frame.origin.y + self.frame.size.height, width: 0, height: 0), style: UITableViewStyle.plain)
         leftTableView.delegate = self
         leftTableView.dataSource = self
         leftTableView.rowHeight = 44
         leftTableView.tableHeaderView = UIView()
         leftTableView.tableFooterView = UIView()
         
-        rightTableView = UITableView.init(frame: CGRect.init(x: self.frame.size.width, y: self.frame.origin.y + self.frame.size.height, width: 0, height: 0), style: UITableViewStyle.plain)
+        rightTableView = UITableView.init(frame: CGRect.init(x: self.frame.size.width, y: frame.origin.y + self.frame.size.height, width: 0, height: 0), style: UITableViewStyle.plain)
         rightTableView.delegate = self
         rightTableView.dataSource = self
         rightTableView.rowHeight = 44
@@ -176,7 +181,7 @@ extension NMenuDropView {
         
         //菜单底部分割线
         let bottomLineView = UIView()
-        bottomLineView.frame = CGRect.init(x: 0, y: self.frame.height - 1, width: self.frame.width, height: 1)
+        bottomLineView.frame = CGRect.init(x: 0, y: self.frame.height - 0.5, width: self.frame.width, height: 0.5)
         bottomLineView.backgroundColor = separatorLineColor
         self.addSubview(bottomLineView)
     }
@@ -215,6 +220,7 @@ extension NMenuDropView {
             let titleLabel = UILabel()
             titleLabel.frame = CGRect.init(x: button.center.x - (imageWidth / 2), y: button.center.y, width: buttonWidth - imageWidth - titleImageSpace , height: button.frame.height)
             titleLabel.text = titleString
+            titleLabel.font = textFont
             titleLabel.center = CGPoint.init(x: button.center.x - (imageWidth / 2), y: button.center.y)
             titleLabel.textColor = menuTitleNormalColor
             let size = titleLabel.sizeThatFits(CGSize.init(width: buttonWidth - imageWidth - titleImageSpace, height: self.frame.size.height))
@@ -224,7 +230,7 @@ extension NMenuDropView {
             //方向箭头图片
             let indicatorImageView = UIImageView()
             indicatorImageView.frame = CGRect.init(x: 0, y: button.center.y, width: imageWidth, height: imageWidth)
-            indicatorImageView.image = #imageLiteral(resourceName: "icon_arrow")
+            indicatorImageView.image = UIImage(named: "icon_menu_arrow_down")
             indicatorImageView.center = CGPoint(x: titleLabel.frame.maxX + titleImageSpace + imageWidth / 2, y: button.center.y)
             indicatorImageView.contentMode = .scaleAspectFit
             self.addSubview(indicatorImageView)
@@ -239,6 +245,7 @@ extension NMenuDropView {
 // MARK:--弹窗显示/消失
 extension NMenuDropView {
     @objc private func didMenuViewTap(button: UIButton) {
+        didMenuTapClosure?()
         currentMenuSelectedIndex = button.tag - 100
         let isHaveRight = dataSource?.haveRightTableViewInColumn(column: currentMenuSelectedIndex) ?? false
         let tempRightTableView = isHaveRight ? rightTableView : nil
@@ -299,8 +306,10 @@ extension NMenuDropView {
         complete()
     }
     fileprivate func animateBackgroundView(_ view: UIView, andIsShow isShow: Bool,complete: Complete) {
+        view.frame = CGRect.init(x: frame.origin.x, y: frame.origin.y + self.frame.height, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
         if isShow {//显示
-            self.superview?.addSubview(view)
+            UIApplication.shared.keyWindow?.addSubview(view)
+            //            self.superview?.addSubview(view)
             view.superview?.addSubview(self)
             UIView.animate(withDuration: 0.2) {
                 view.backgroundColor = UIColor.init(white: 0.0, alpha: self.backgroundViewColorAlpha)
@@ -372,6 +381,7 @@ extension NMenuDropView: UITableViewDelegate,UITableViewDataSource {
         }
         cell.textLabel?.text = self.dataSource?.memu(self, titleForRowAt: NIndexPath.init(column: currentMenuSelectedIndex, leftOrRight: leftOrRight, leftRow:leftSelectedRow, row: indexPath.row))
         cell.textLabel?.textColor = menuTitleNormalColor
+        cell.textLabel?.font = textFont
         
         let isHaveRight = self.dataSource?.haveRightTableViewInColumn(column: currentMenuSelectedIndex) ?? false
         leftTableView.backgroundColor = isHaveRight ? UIColor.groupTableViewBackground : UIColor.white
