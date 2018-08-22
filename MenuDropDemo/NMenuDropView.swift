@@ -308,8 +308,7 @@ extension NMenuDropView {
     fileprivate func animateBackgroundView(_ view: UIView, andIsShow isShow: Bool,complete: Complete) {
         view.frame = CGRect.init(x: frame.origin.x, y: frame.origin.y + self.frame.height, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
         if isShow {//显示
-            self.superview?.superview?.addSubview(view)
-//            self.superview?.addSubview(view)
+            self.superview?.addSubview(view)
             view.superview?.addSubview(self)
             UIView.animate(withDuration: 0.2) {
                 view.backgroundColor = UIColor.init(white: 0.0, alpha: self.backgroundViewColorAlpha)
